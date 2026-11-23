@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Factorial Client Day</title>
+<style>
+  :root {
+    --red: #E10600;
+    --red-on-dark: #FF6A5C;
+    --ink: #161616;
+    --muted: #5C5854;
+    --body: #3F3C39;
+    --sand: #F6F3EE;
+    --dark: #141414;
+    --line: #ECE7E1;
+    --pale: #E6E2DC;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; color: var(--ink); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  .slide {
+    display: none;
+    min-height: 100vh;
+    padding: 7vh 7vw 8vh;
+    flex-direction: column;
+    background: #fff;
+    position: relative;
+  }
+  .slide.on { display: flex; }
+  .slide.dark { background: var(--dark); color: #fff; }
+  .kicker {
+    margin: 0 0 1.2vh;
+    color: var(--red);
+    font-size: clamp(12px, 1.3vh, 15px);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .dark .kicker { color: var(--red-on-dark); }
+  h1 {
+    margin: 0;
+    font-size: clamp(32px, 4.6vh, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-weight: 680;
+  }
+  .lede { margin: 1.4vh 0 0; color: var(--muted); font-size: clamp(16px, 2.2vh, 22px); }
+  .dark .lede { color: #D4D0CA; }
+  .rule { width: 64px; height: 4px; background: var(--red); margin-bottom: 2vh; }
+  .foot {
+    position: absolute;
+    left: 7vw;
+    right: 7vw;
+    bottom: 2.4vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #8A847C;
+  }
+  .mark { display: flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 700; }
+  .dark .mark { color: #C8C4BE; }
+  .sq { width: 8px; height: 8px; background: var(--red); display: inline-block; }
+  #bar { position: fixed; top: 0; left: 0; height: 4px; background: var(--red); z-index: 5; }
+
+  .agenda { list-style: none; margin: 3vh 0 0; padding: 0; }
+  .agenda li {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 12px;
+    align-items: baseline;
+    border-top: 1px solid var(--line);
+    padding: 1.5vh 0;
+    font-size: clamp(18px, 2.8vh, 28px);
+    letter-spacing: -0.02em;
+  }
+  .agenda span { color: var(--red); font-weight: 700; font-size: 14px; }
+
+  .grid { margin-top: 3vh; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.6vh; flex: 1; }
+  .card, .panel, .item, .q, .big {
+    background: var(--sand);
+    border-radius: 12px;
+    padding: 2.2vh 2vw;
+  }
+  .card .n, .big .n { color: var(--red); font-weight: 700; font-size: 13px; letter-spacing: 0.08em; }
+  .card h3, .item h3 { margin: 1vh 0 0.4vh; font-size: clamp(18px, 2.4vh, 26px); letter-spacing: -0.02em; }
+  .card p, .item p { margin: 0; color: var(--body); font-size: clamp(14px, 1.8vh, 18px); line-height: 1.35; }
+  .grid.two { grid-template-columns: 1.3fr 0.9fr; }
+  .stack { display: flex; flex-direction: column; gap: 1.4vh; }
+  .side {
+    background: var(--dark);
+    color: #fff;
+    border-radius: 12px;
+    padding: 3vh 2vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .side .kicker { color: var(--red-on-dark); }
+  .side h3 { margin: 1vh 0; font-size: clamp(26px, 3.4vh, 36px); letter-spacing: -0.03em; }
+  .side p { margin: 0; color: var(--pale); font-size: clamp(15px, 1.9vh, 18px); line-height: 1.4; }
+
+  .split { margin-top: 3vh; display: grid; grid-template-columns: 1fr 1fr; gap: 1.6vh; flex: 1; }
+  .panel { display: flex; flex-direction: column; justify-content: space-between; padding: 4vh 2.4vw; }
+  .panel.dark { background: var(--dark); color: #fff; }
+  .panel h2 { margin: 1.5vh 0 0; font-size: clamp(28px, 4vh, 44px); letter-spacing: -0.03em; }
+  .panel p { margin: 0; font-size: clamp(16px, 2.2vh, 22px); line-height: 1.35; }
+  .panel.dark p { color: var(--pale); }
+  .panel .where { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; }
+  .panel.dark .where { color: var(--red-on-dark); }
+  .panel.sand .where { color: var(--red); }
+
+  ul.clean { list-style: none; margin: 3vh 0 0; padding: 0; }
+  ul.clean li {
+    position: relative;
+    padding: 0.9vh 0 0.9vh 22px;
+    font-size: clamp(18px, 2.6vh, 26px);
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+  ul.clean li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 1.7vh;
+    width: 8px;
+    height: 8px;
+    background: var(--red);
+  }
+  .callout {
+    margin-top: auto;
+    background: var(--dark);
+    color: #fff;
+    border-radius: 10px;
+    padding: 2vh 1.6vw;
+    font-size: clamp(16px, 2.2vh, 22px);
+  }
+
+  .rows { margin-top: 2vh; display: flex; flex-direction: column; flex: 1; }
+  .row {
+    display: grid;
+    grid-template-columns: 48px 180px 1fr;
+    gap: 16px;
+    align-items: center;
+    border-top: 1px solid var(--line);
+    flex: 1;
+  }
+  .row .n { color: var(--red); font-weight: 700; }
+  .row h3 { margin: 0; font-size: clamp(16px, 2.2vh, 22px); }
+  .row p { margin: 0; color: var(--body); font-size: clamp(14px, 1.9vh, 18px); line-height: 1.3; }
+
+  .qs { margin-top: 2vh; display: flex; flex-direction: column; gap: 1.4vh; flex: 1; }
+  .q { display: flex; align-items: center; font-size: clamp(18px, 2.6vh, 26px); letter-spacing: -0.02em; }
+  .pair { margin-top: 2vh; display: grid; grid-template-columns: 1fr 1fr; gap: 1.6vh; flex: 1; }
+  .big h3 { margin: 1.5vh 0 0; font-size: clamp(26px, 3.4vh, 36px); letter-spacing: -0.03em; line-height: 1.15; }
+
+  video {
+    width: 100%;
+    max-height: 68vh;
+    margin-top: 2vh;
+    background: #000;
+    border-radius: 12px;
+  }
+  .hint { margin-top: 1.2vh; color: #9A958E; font-size: 15px; }
+  .title-slide { justify-content: flex-end; }
+  .title-slide h1 { font-size: clamp(64px, 10vh, 108px); }
+  .grow { margin-top: auto; }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<section class="slide dark title-slide">
+  <div class="rule"></div>
+  <p class="kicker">Client Day</p>
+  <h1>Factorial</h1>
+  <p class="lede">For the people who use it, and the people who might.</p>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span>Arrow keys</span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Today</p>
+  <h1>How this hour goes</h1>
+  <ol class="agenda">
+    <li><span>01</span> What is new</li>
+    <li><span>02</span> Talent and operations</li>
+    <li><span>03</span> Finance</li>
+    <li><span>04</span> What clients already use</li>
+    <li><span>05</span> One</li>
+    <li><span>06</span> KennScott</li>
+    <li><span>07</span> Kahoot, then your questions</li>
+  </ol>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">What is new</p>
+  <h1>Live now. Two things still this quarter.</h1>
+  <div class="grid two">
+    <div class="stack">
+      <div class="item"><h3>Set up from a file</h3><p>Job catalog, document templates, onboarding rules, and benefits.</p></div>
+      <div class="item"><h3>The week of work</h3><p>On-call shifts, cover calls, retroactive clock-in, payroll exceptions.</p></div>
+      <div class="item"><h3>For managers</h3><p>Accruals, training, goals, and 1-on-1s, with the assistant.</p></div>
+    </div>
+    <div class="side">
+      <div>
+        <p class="kicker">End of Q4</p>
+        <h3>Not live today</h3>
+      </div>
+      <p>Culture fit on the candidate profile. A preview of the onboarding a person will actually get.</p>
+    </div>
+  </div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Live now</p>
+  <h1>Set up from a file</h1>
+  <p class="lede">Upload the document. Factorial builds the setup.</p>
+  <div class="rows">
+    <div class="row"><div class="n">01</div><h3>Job catalog</h3><p>Roles, salary bands, and categories from one upload.</p></div>
+    <div class="row"><div class="n">02</div><h3>Templates</h3><p>Document templates built from employee data.</p></div>
+    <div class="row"><div class="n">03</div><h3>Onboarding</h3><p>Tasks fire by location, department, or team.</p></div>
+    <div class="row"><div class="n">04</div><h3>Benefits</h3><p>Upload the policy. The employee sees their allowance.</p></div>
+  </div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Live now</p>
+  <h1>The week of work</h1>
+  <div class="rows">
+    <div class="row"><div class="n">01</div><h3>On-call shifts</h3><p>For hospitality, healthcare, and any team off a fixed rota.</p></div>
+    <div class="row"><div class="n">02</div><h3>Open shift</h3><p>Factorial calls people to cover it, in their language.</p></div>
+    <div class="row"><div class="n">03</div><h3>Clock-in</h3><p>An employee can ask to be clocked in for a start time that already happened.</p></div>
+    <div class="row"><div class="n">04</div><h3>Payroll</h3><p>Differences with the external provider get flagged and resolved.</p></div>
+  </div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Live now</p>
+  <h1>For managers</h1>
+  <div class="rows">
+    <div class="row"><div class="n">01</div><h3>Time off</h3><p>Accrual rules, including a day on a work anniversary, set with the assistant and simulated before you save.</p></div>
+    <div class="row"><div class="n">02</div><h3>Training</h3><p>The assistant writes the content. You set the design.</p></div>
+    <div class="row"><div class="n">03</div><h3>Goals</h3><p>Created in bulk, from a file or from a request.</p></div>
+    <div class="row"><div class="n">04</div><h3>1-on-1s</h3><p>Prep before the meeting. A summary and suggested actions after.</p></div>
+  </div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">End of Q4</p>
+  <h1>Still this quarter</h1>
+  <p class="lede">Not in the product today.</p>
+  <div class="pair">
+    <div class="big"><div class="n">01</div><h3>Culture fit</h3><p class="lede">Scored from the candidate profile, then available in the engagement module.</p></div>
+    <div class="big"><div class="n">02</div><h3>Onboarding simulation</h3><p class="lede">Pick a role or an entity and see the task list that person will get.</p></div>
+  </div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide dark">
+  <p class="kicker">Film · 15 min</p>
+  <h1>Talent and operations</h1>
+  <p class="lede">Roles, time, and the week of work. Play the part you need.</p>
+  <video controls playsinline preload="metadata" src="videos/talent-ops.mp4"></video>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide dark">
+  <p class="kicker">Film · 11 min</p>
+  <h1>Finance</h1>
+  <p class="lede">Headcount, expenses, and the plan.</p>
+  <video controls playsinline preload="metadata" src="videos/finance.mp4"></video>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">What clients use</p>
+  <h1>What clients already use</h1>
+  <p class="lede">The same set KennScott is running.</p>
+  <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
+    <div class="card"><div class="n">01</div><h3>Time</h3><p>Leave and attendance, day to day</p></div>
+    <div class="card"><div class="n">02</div><h3>Documents</h3><p>Contracts and certifications, signed online</p></div>
+    <div class="card"><div class="n">03</div><h3>Records</h3><p>Profiles and attendance in one place</p></div>
+    <div class="card"><div class="n">04</div><h3>Learning</h3><p>Training on the record, including offshore safety</p></div>
+    <div class="card"><div class="n">05</div><h3>Reminders</h3><p>Birthdays and anniversaries for offshore staff</p></div>
+  </div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">The difference</p>
+  <h1>What separates Factorial</h1>
+  <div class="split">
+    <div class="panel dark">
+      <div><div class="where">In the market</div><h2>Agentic AI</h2></div>
+      <p>The only agentic AI among HRIS.</p>
+    </div>
+    <div class="panel">
+      <div><div class="where" style="color:var(--red)">In Trinidad</div><h2>Local support</h2></div>
+      <p>The only HRIS with local support in Trinidad.</p>
+    </div>
+  </div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Agentic AI</p>
+  <h1>One knows the company and acts inside it</h1>
+  <ul class="clean">
+    <li>Screens candidates, and can call them</li>
+    <li>Checks expenses against your policy</li>
+    <li>Drafts the ticket answer for someone to approve</li>
+    <li>Builds the report from live data</li>
+    <li>Stays inside each person’s permissions</li>
+  </ul>
+  <div class="callout">The only agentic AI among HRIS. It asks before it acts.</div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide dark">
+  <p class="kicker">Film · 7 min</p>
+  <h1>One</h1>
+  <p class="lede">The agent, on your company data.</p>
+  <video controls playsinline preload="metadata" src="videos/one.mp4"></video>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Trinidad</p>
+  <h1>The difference is who picks up</h1>
+  <ul class="clean">
+    <li>Davyn is the local partner</li>
+    <li>Onboarding with someone in Trinidad</li>
+    <li>An account manager who stays after go-live</li>
+    <li>A typical rollout is measured in weeks</li>
+  </ul>
+  <div class="callout">The only HRIS with local support in Trinidad.</div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Proof</p>
+  <h1>KennScott Limited</h1>
+  <p class="lede">Offshore crew. A five-person HR team, going first.</p>
+  <ul class="clean">
+    <li>Certification, medical, and contract expiry live in the system</li>
+    <li>Profiles, contracts, and attendance in one place, signed online</li>
+    <li>Reminders for people the HR team rarely sees</li>
+    <li>Learning sits in Factorial, with room for offshore safety training</li>
+    <li>Leave and time already run day to day</li>
+  </ul>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide dark">
+  <p class="kicker">KennScott</p>
+  <h1 class="grow">Play the film</h1>
+  <p class="lede">Hold questions until it ends.</p>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide dark">
+  <p class="kicker grow">Everyone plays</p>
+  <h1>Kahoot</h1>
+  <p class="lede">Power banks. Every answer was said in this room.</p>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span>Seven questions</span></div>
+</section>
+
+<section class="slide dark">
+  <p class="kicker grow">Second round</p>
+  <h1>Non-clients only</h1>
+  <p class="lede">Clients sit this one out.</p>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span>Four questions</span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Q&amp;A</p>
+  <h1>Ask the person who uses it</h1>
+  <p class="lede">Non-clients ask. Clients answer from use.</p>
+  <div class="qs">
+    <div class="q">What did you stop doing in spreadsheets?</div>
+    <div class="q">What was broken before Factorial fixed it?</div>
+    <div class="q">What features do employees use the most?</div>
+    <div class="q">What made you buy Factorial?</div>
+  </div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Suggestions</p>
+  <h1>One card. One sentence.</h1>
+  <p class="lede">We will read a few out loud. The rest go to the product team.</p>
+  <div class="pair">
+    <div class="big"><div class="n">CLIENTS</div><h3>What is still missing</h3></div>
+    <div class="big"><div class="n">NON-CLIENTS</div><h3>What you would need to see before you moved</h3></div>
+  </div>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<section class="slide">
+  <p class="kicker">Close</p>
+  <h1>Before you leave</h1>
+  <ul class="clean">
+    <li>Take the suggestion card with you</li>
+    <li>Clients, your account manager has the updates</li>
+    <li>Non-clients, name the spreadsheet you still run</li>
+  </ul>
+  <div class="foot"><span class="mark"><i class="sq"></i> factorial</span><span></span></div>
+</section>
+
+<script>
+const slides = [...document.querySelectorAll(".slide")];
+let i = 0;
+const bar = document.getElementById("bar");
+
+function show(n) {
+  slides[i].querySelectorAll("video").forEach(v => v.pause());
+  i = Math.max(0, Math.min(slides.length - 1, n));
+  slides.forEach((s, idx) => s.classList.toggle("on", idx === i));
+  bar.style.width = ((i + 1) / slides.length * 100) + "%";
+  location.hash = String(i + 1);
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.target instanceof Element && e.target.closest("video")) return;
+  if (e.key === "ArrowRight" || e.key === "PageDown") { show(i + 1); e.preventDefault(); }
+  if (e.key === "ArrowLeft" || e.key === "PageUp") { show(i - 1); e.preventDefault(); }
+  if (e.key === "Home") show(0);
+  if (e.key === "End") show(slides.length - 1);
+});
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest("video, a, button")) return;
+  if (e.clientX > innerWidth * 0.78) show(i + 1);
+  else if (e.clientX < innerWidth * 0.16) show(i - 1);
+});
+
+const start = Math.max(0, (parseInt(location.hash.slice(1), 10) || 1) - 1);
+show(start);
+</script>
+</body>
+</html>
